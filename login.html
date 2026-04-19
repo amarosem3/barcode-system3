@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ROLLCALL - Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: radial-gradient(circle at 20% 30%, #0a0f1f, #03060c);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .login-card {
+            background: rgba(20,27,43,0.8);
+            backdrop-filter: blur(16px);
+            border-radius: 32px;
+            border: 1px solid rgba(0,242,254,0.3);
+            padding: 2rem;
+            width: 100%;
+            max-width: 420px;
+        }
+        .role-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            justify-content: center;
+        }
+        .role-btn {
+            background: rgba(30,39,64,0.7);
+            border: 1px solid #2a3442;
+            padding: 0.5rem 1.5rem;
+            border-radius: 40px;
+            color: white;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .role-btn.active {
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            color: #0a0f1f;
+            border-color: transparent;
+        }
+        .input-group { margin-bottom: 1rem; }
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            background: rgba(30,39,64,0.7);
+            border: 1px solid #2a3442;
+            border-radius: 40px;
+            padding: 0.5rem 1rem;
+        }
+        .input-wrapper i { color: #00f2fe; margin-right: 0.8rem; }
+        .input-wrapper input {
+            background: transparent;
+            border: none;
+            width: 100%;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            border: none;
+            padding: 0.8rem;
+            border-radius: 40px;
+            font-weight: 700;
+            color: #0a0f1f;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        .error { color: #ff8a8a; text-align: center; margin-top: 1rem; font-size: 0.85rem; display: none; }
+        .register-link { text-align: center; margin-top: 1.5rem; font-size: 0.85rem; }
+        .register-link a { color: #00f2fe; text-decoration: none; }
+        .info-text { font-size: 0.7rem; text-align: center; margin-top: 1rem; color: #6c757d; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2><i class="fas fa-qrcode"></i> ROLLCALL</h2>
+        <div class="role-selector">
+            <div class="role-btn" id="lecturerBtn">👨‍🏫 Lecturer</div>
+            <div class="role-btn" id="adminBtn">👑 Admin</div>
+        </div>
+        <form id="loginForm">
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" placeholder="Email" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+            </div>
+            <button type="submit">Login</button>
+            <div class="error" id="errorMsg"></div>
+        </form>
+        <div class="register-link">
+            New lecturer? <a href="register.html">Register here</a>
+        </div>
+        <div class="info-text">
+            <i class="fas fa-info-circle"></i> Admin default: admin@rollcall.com / admin123
+        </div>
+    </div>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAVnzKkl-GtHziHbw6SAdfftVnFkM5xm7E",
+            authDomain: "barcode-2591e.firebaseapp.com",
+            projectId: "barcode-2591e",
+            storageBucket: "barcode-2591e.firebasestorage.app",
+            messagingSenderId: "206115727840",
+            appId: "1:206115727840:web:79c3b16d866782397ba385"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const lecturerBtn = document.getElementById('lecturerBtn');
+        const adminBtn = document.getElementById('adminBtn');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+
+        lecturerBtn.addEventListener('click', () => {
+            lecturerBtn.classList.add('active');
+            adminBtn.classList.remove('active');
+            emailInput.value = '';
+            emailInput.placeholder = 'Lecturer email';
+            passwordInput.value = '';
+        });
+        adminBtn.addEventListener('click', () => {
+            adminBtn.classList.add('active');
+            lecturerBtn.classList.remove('active');
+            emailInput.value = 'admin@rollcall.com';
+            passwordInput.value = 'admin123';
+            emailInput.placeholder = 'Admin email';
+        });
+        lecturerBtn.classList.add('active');
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            const errorDiv = document.getElementById('errorMsg');
+            errorDiv.style.display = 'none';
+            if (!email || !password) {
+                errorDiv.innerText = 'Please enter email and password.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            try {
+                const userCred = await auth.signInWithEmailAndPassword(email, password);
+                const user = userCred.user;
+                const doc = await db.collection('users').doc(user.uid).get();
+                if (!doc.exists) {
+                    await auth.signOut();
+                    errorDiv.innerText = 'User role not found. Contact admin.';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+                const role = doc.data().role;
+                sessionStorage.setItem('loggedIn', 'true');
+                sessionStorage.setItem('uid', user.uid);
+                sessionStorage.setItem('role', role);
+                if (role === 'admin') {
+                    window.location.href = 'index.html';
+                } else {
+                    window.location.href = 'lecturer.html';
+                }
+            } catch (err) {
+                errorDiv.innerText = err.message;
+                errorDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
