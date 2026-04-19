@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ROLLCALL - Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0f1219;
+            font-family: 'Inter', sans-serif;
+            color: #e0e0e0;
+            padding: 1rem;
+        }
+        /* Header desktop-like */
+        .header {
+            background: #1e2433;
+            border-radius: 16px;
+            padding: 0.8rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            border: 1px solid #2d3748;
+        }
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #00f2fe;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            background: #2a3442;
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            text-decoration: none;
+            color: #e0e0e0;
+            font-weight: 500;
+            transition: 0.2s;
+            border: 1px solid #3a4557;
+        }
+        .nav-btn:hover {
+            background: #00f2fe;
+            color: #0a0f1f;
+            border-color: #00f2fe;
+        }
+        /* Stats cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: #1e2433;
+            border-radius: 20px;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid #2d3748;
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #00f2fe;
+        }
+        /* Cards */
+        .card {
+            background: #1e2433;
+            border-radius: 20px;
+            border: 1px solid #2d3748;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        .card-header {
+            background: #151b26;
+            padding: 1rem;
+            border-bottom: 2px solid #00f2fe;
+            font-weight: 600;
+        }
+        .card-body { padding: 1rem; }
+        .form-control {
+            width: 100%;
+            background: #2a3442;
+            border: 1px solid #3a4557;
+            padding: 0.7rem;
+            border-radius: 30px;
+            color: #e0e0e0;
+        }
+        .btn {
+            background: #2a3442;
+            border: 1px solid #3a4557;
+            padding: 0.6rem 1.2rem;
+            border-radius: 30px;
+            font-weight: 500;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-primary {
+            background: #00f2fe;
+            color: #0a0f1f;
+            border-color: #00f2fe;
+        }
+        .btn-secondary {
+            background: #2a3442;
+        }
+        .time-picker {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        .test-result {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 16px;
+            background: #2a3442;
+            font-weight: 500;
+        }
+        .test-result.present { background: rgba(0,230,118,0.2); color: #00e676; }
+        .test-result.late { background: rgba(255,193,7,0.2); color: #ffc107; }
+        .test-result.invalid { background: rgba(255,23,68,0.2); color: #ff8a8a; }
+        .class-group { margin-bottom: 2rem; }
+        .class-header {
+            background: #2a3442;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+            font-weight: 600;
+            color: #00f2fe;
+        }
+        .student-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .student-table th, .student-table td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid #2d3748;
+        }
+        .student-table th { color: #a0a8c0; font-weight: 500; }
+        .student-table tr:hover { background: rgba(0,242,254,0.05); }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #ff1744;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        @media (max-width: 700px) {
+            .student-table th, .student-table td { padding: 0.5rem; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-qrcode"></i> ROLLCALL Admin</h1>
+        <div class="nav-buttons">
+            <a href="attendance_list.html" class="nav-btn"><i class="fas fa-list"></i> Attendance Log</a>
+            <a href="lecturer.html" class="nav-btn"><i class="fas fa-chalkboard-user"></i> Lecturer View</a>
+            <button class="nav-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card"><i class="fas fa-users"></i> Total Students: <div class="stat-number" id="totalStudents">0</div></div>
+        <div class="stat-card"><i class="fas fa-check-circle" style="color:#00e676;"></i> Present Today: <div class="stat-number" id="presentCount">0</div></div>
+        <div class="stat-card"><i class="fas fa-times-circle" style="color:#ff1744;"></i> Absent Today: <div class="stat-number" id="absentCount">0</div></div>
+        <div class="stat-card"><i class="fas fa-chart-line"></i> Attendance Rate: <div class="stat-number" id="attendanceRate">0%</div></div>
+    </div>
+
+    <!-- Test Scanner Logic & Email -->
+    <div class="card">
+        <div class="card-header"><i class="fas fa-vial"></i> Test Scanner Logic & Email</div>
+        <div class="card-body">
+            <p>Simulate scan time to see classification (present / late / ignored after 8:15 AM).</p>
+            <div class="time-picker">
+                <button class="btn btn-secondary" id="testBefore745">🟢 Before 7:45 AM (Present)</button>
+                <button class="btn btn-secondary" id="testLate">🟠 7:45 – 8:15 AM (Late)</button>
+                <button class="btn btn-secondary" id="testAfter815">🔴 After 8:15 AM (Ignored)</button>
+                <span style="margin: 0 0.5rem;">or</span>
+                <input type="time" id="customTime" step="1" value="08:00">
+                <button class="btn btn-secondary" id="testCustomTime">Test Custom Time</button>
+                <button class="btn btn-primary" id="testEmailBtn"><i class="fas fa-envelope"></i> Test Email Alert</button>
+            </div>
+            <div id="testResult" class="test-result"></div>
+        </div>
+    </div>
+
+    <!-- Add New Student -->
+    <div class="card">
+        <div class="card-header"><i class="fas fa-user-graduate"></i> Add New Student</div>
+        <div class="card-body">
+            <form id="studentForm" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <input type="text" id="ic_number" class="form-control" placeholder="IC Number" style="flex:1;" required>
+                <input type="text" id="student_id" class="form-control" placeholder="Student ID" style="flex:1;" required>
+                <input type="text" id="student_name" class="form-control" placeholder="Student Name" style="flex:2;" required>
+                <input type="text" id="class_name" class="form-control" placeholder="Class (e.g., DFK5A)" style="flex:1;">
+                <button type="submit" class="btn btn-primary">Add Student</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Students Grouped by Class -->
+    <div class="card">
+        <div class="card-header"><i class="fas fa-users-viewfinder"></i> Students by Class</div>
+        <div class="card-body" id="studentsByClassContainer">Loading...</div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAVnzKkl-GtHziHbw6SAdfftVnFkM5xm7E",
+            authDomain: "barcode-2591e.firebaseapp.com",
+            projectId: "barcode-2591e",
+            storageBucket: "barcode-2591e.firebasestorage.app",
+            messagingSenderId: "206115727840",
+            appId: "1:206115727840:web:79c3b16d866782397ba385"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        (function() { emailjs.init("V6od5_xVWtn8C1ZWv"); })();
+
+        if (!sessionStorage.getItem('loggedIn')) window.location.href = 'login.html';
+        if (sessionStorage.getItem('role') !== 'admin') window.location.href = 'lecturer.html';
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            auth.signOut().then(() => { sessionStorage.clear(); window.location.href = 'login.html'; });
+        });
+
+        const LIMIT_LATE = "07:45", LIMIT_INVALID = "08:15";
+        function getStatusFromTime(timeStr) {
+            if (timeStr < LIMIT_LATE) return { status: 'present', label: 'Present 🟢 (will be recorded)' };
+            if (timeStr < LIMIT_INVALID) return { status: 'late', label: 'Late 🟠 (will be recorded)' };
+            return { status: 'invalid', label: 'INVALID 🔴 (ignored, not recorded)' };
+        }
+        function showTestResult(timeStr) {
+            const r = getStatusFromTime(timeStr);
+            const div = document.getElementById('testResult');
+            div.className = `test-result ${r.status === 'present' ? 'present' : (r.status === 'late' ? 'late' : 'invalid')}`;
+            div.innerHTML = `<i class="fas ${r.status === 'present' ? 'fa-check-circle' : (r.status === 'late' ? 'fa-clock' : 'fa-ban')}"></i> Scan at <strong>${timeStr}</strong> → ${r.label}`;
+        }
+        document.getElementById('testBefore745').addEventListener('click', () => showTestResult("07:30"));
+        document.getElementById('testLate').addEventListener('click', () => showTestResult("08:00"));
+        document.getElementById('testAfter815').addEventListener('click', () => showTestResult("08:20"));
+        document.getElementById('testCustomTime').addEventListener('click', () => {
+            const custom = document.getElementById('customTime').value;
+            if (custom) showTestResult(custom);
+            else alert('Please select a time');
+        });
+        document.getElementById('testEmailBtn').addEventListener('click', async () => {
+            const div = document.getElementById('testResult');
+            div.innerHTML = 'Sending test email...';
+            div.className = 'test-result';
+            try {
+                const res = await emailjs.send('service_4hnvptf', 'template_ugspg5y', {
+                    to_email: 'admin@rollcall.com',
+                    subject: '🧪 Test Email from ROLLCALL',
+                    name: 'Admin',
+                    message: 'This is a test email from your ROLLCALL attendance system.',
+                    date: new Date().toLocaleDateString()
+                });
+                if (res.status === 200) {
+                    div.innerHTML = '✅ Test email sent! Check your inbox.';
+                    div.className = 'test-result present';
+                } else {
+                    div.innerHTML = '❌ Failed to send test email.';
+                    div.className = 'test-result invalid';
+                }
+            } catch(e) {
+                div.innerHTML = '❌ Error: ' + e.message;
+                div.className = 'test-result invalid';
+            }
+        });
+
+        async function loadStats() {
+            const studentsSnap = await db.collection('students').get();
+            const total = studentsSnap.size;
+            const today = new Date().toISOString().split('T')[0];
+            const attendanceSnap = await db.collection('attendance').where('scan_date', '==', today).get();
+            const present = attendanceSnap.size;
+            const absent = total - present;
+            const rate = total ? Math.round((present / total) * 100) : 0;
+            document.getElementById('totalStudents').innerText = total;
+            document.getElementById('presentCount').innerText = present;
+            document.getElementById('absentCount').innerText = absent;
+            document.getElementById('attendanceRate').innerText = rate + '%';
+        }
+
+        async function loadStudentsGrouped() {
+            const snapshot = await db.collection('students').get();
+            const students = [];
+            snapshot.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+            const grouped = {};
+            students.forEach(s => {
+                let cls = (s.class || 'No Class').trim().toUpperCase();
+                if (!grouped[cls]) grouped[cls] = [];
+                grouped[cls].push(s);
+            });
+            const sortedClasses = Object.keys(grouped).sort();
+            const container = document.getElementById('studentsByClassContainer');
+            if (sortedClasses.length === 0) { container.innerHTML = '<p>No students yet.</p>'; return; }
+            let html = '';
+            for (const cls of sortedClasses) {
+                const studentsInClass = grouped[cls];
+                html += `<div class="class-group"><div class="class-header"><i class="fas fa-chalkboard-user"></i> ${cls} (${studentsInClass.length} students)</div><table class="student-table"><thead><tr><th>IC Number</th><th>Student ID</th><th>Name</th><th>Action</th></tr></thead><tbody>`;
+                studentsInClass.forEach(s => {
+                    html += `<tr><td>${escapeHtml(s.ic_number || '')}</td><td>${escapeHtml(s.student_id || '')}</td><td>${escapeHtml(s.student_name || '')}</td><td><button class="delete-btn" data-id="${s.id}"><i class="fas fa-trash"></i> Delete</button></td></tr>`;
+                });
+                html += `</tbody></table></div>`;
+            }
+            container.innerHTML = html;
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const id = btn.getAttribute('data-id');
+                    if (confirm('Delete this student permanently?')) {
+                        await db.collection('students').doc(id).delete();
+                        loadStudentsGrouped();
+                        loadStats();
+                    }
+                });
+            });
+        }
+        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+
+        document.getElementById('studentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const ic = document.getElementById('ic_number').value.trim();
+            const sid = document.getElementById('student_id').value.trim();
+            const name = document.getElementById('student_name').value.trim();
+            const className = document.getElementById('class_name').value.trim();
+            if (!ic || !sid || !name) { alert('Please fill IC, Student ID and Name'); return; }
+            try {
+                await db.collection('students').add({
+                    ic_number: ic,
+                    student_id: sid,
+                    student_name: name,
+                    class: className || '',
+                    created_at: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                alert('Student added');
+                document.getElementById('studentForm').reset();
+                loadStudentsGrouped();
+                loadStats();
+            } catch (err) { alert('Error: ' + err.message); }
+        });
+
+        loadStats();
+        loadStudentsGrouped();
+        setInterval(() => { loadStats(); loadStudentsGrouped(); }, 30000);
+    </script>
+</body>
+</html>
