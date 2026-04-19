@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ROLLCALL - Lecturer Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0f1219; font-family: 'Inter', sans-serif; color: #e0e0e0; padding: 1rem; }
+        .header {
+            background: #1e2433;
+            border-radius: 16px;
+            padding: 0.8rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            border: 1px solid #2d3748;
+        }
+        .header h1 { font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem; color: #00f2fe; }
+        .nav-buttons { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+        .nav-btn {
+            background: #2a3442;
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            text-decoration: none;
+            color: #e0e0e0;
+            font-weight: 500;
+            border: 1px solid #3a4557;
+        }
+        .nav-btn:hover { background: #00f2fe; color: #0a0f1f; }
+        .controls {
+            background: #1e2433;
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            border: 1px solid #2d3748;
+        }
+        .filter-group { display: flex; gap: 0.8rem; }
+        select, input {
+            background: #2a3442;
+            border: 1px solid #3a4557;
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            color: #e0e0e0;
+        }
+        .btn {
+            background: #2a3442;
+            border: 1px solid #3a4557;
+            padding: 0.5rem 1.2rem;
+            border-radius: 30px;
+            font-weight: 500;
+            color: #e0e0e0;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: #00f2fe;
+            color: #0a0f1f;
+            border-color: #00f2fe;
+        }
+        .lecturer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.5rem;
+        }
+        .card {
+            background: #1e2433;
+            border-radius: 20px;
+            border: 1px solid #2d3748;
+            overflow: hidden;
+        }
+        .card-header {
+            background: #151b26;
+            padding: 1rem;
+            border-bottom: 2px solid #00f2fe;
+        }
+        .students-list {
+            max-height: 350px;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+        .student-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.7rem 0.5rem;
+            border-bottom: 1px solid #2d3748;
+        }
+        .status-badge {
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+        }
+        .status-present { background: rgba(0,230,118,0.2); color: #00e676; }
+        .status-late { background: rgba(255,193,7,0.2); color: #ffc107; }
+        .status-absent { background: rgba(255,23,68,0.2); color: #ff8a8a; }
+        .card-footer {
+            background: #151b26;
+            padding: 0.6rem;
+            text-align: center;
+            font-size: 0.75rem;
+            border-top: 1px solid #2d3748;
+        }
+        .no-data { text-align: center; padding: 2rem; color: #a0a8c0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-chalkboard-user"></i> Lecturer Dashboard</h1>
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-btn"><i class="fas fa-home"></i> Home</a>
+            <a href="attendance_list.html" class="nav-btn"><i class="fas fa-list"></i> Attendance Log</a>
+            <button class="nav-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="filter-group">
+            <select id="classFilter"><option value="all">All Classes</option></select>
+            <input type="text" id="searchInput" placeholder="Search student...">
+        </div>
+        <div>
+            <button class="btn" onclick="loadData()"><i class="fas fa-sync-alt"></i> Refresh</button>
+            <button class="btn btn-primary" id="downloadWeeklyReportBtn"><i class="fas fa-download"></i> Download Weekly Report</button>
+        </div>
+    </div>
+
+    <div id="lecturerGrid" class="lecturer-grid">Loading...</div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAVnzKkl-GtHziHbw6SAdfftVnFkM5xm7E",
+            authDomain: "barcode-2591e.firebaseapp.com",
+            projectId: "barcode-2591e",
+            storageBucket: "barcode-2591e.firebasestorage.app",
+            messagingSenderId: "206115727840",
+            appId: "1:206115727840:web:79c3b16d866782397ba385"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        if (!sessionStorage.getItem('loggedIn')) window.location.href = 'login.html';
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        });
+
+        const lecturerNames = {
+            "DFK1A": "Dr. Ahmad Faizal", "DFK1B": "Pn. Siti Aminah", "DFK2A": "En. Mohd Rizal",
+            "DFK2B": "Pn. Zuraidah", "DFK3A": "Dr. Farah Izzati", "DFK3B": "En. Hafizuddin",
+            "DFK4A": "Pn. Aisyah Humaira", "DFK4B": "Dr. Kamarul Azman", "DFK5A": "En. Azman Hafiz",
+            "DFK5B": "Pn. Nor Azlina", "DFK6A": "Dr. Liza Marlina", "DFK6B": "En. Hakimi",
+            "DFK7A": "Pn. Rosnah", "DFK7B": "Dr. Amir Hamzah"
+        };
+        let allStudents = [], allAttendance = [];
+
+        async function loadData() {
+            const studentsSnap = await db.collection('students').get();
+            allStudents = [];
+            studentsSnap.forEach(doc => allStudents.push({ id: doc.id, ...doc.data() }));
+            const attendanceSnap = await db.collection('attendance').get();
+            allAttendance = [];
+            attendanceSnap.forEach(doc => allAttendance.push({ id: doc.id, ...doc.data() }));
+            renderClasses();
+        }
+
+        function renderClasses() {
+            const classFilter = document.getElementById('classFilter').value;
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const byClass = {};
+            allStudents.forEach(s => { let cls = s.class || "No Class"; if (!byClass[cls]) byClass[cls] = []; byClass[cls].push(s); });
+            const attendanceMap = {};
+            allAttendance.forEach(a => attendanceMap[a.student_id] = a);
+            let classes = Object.keys(byClass).sort();
+            if (classFilter !== 'all') classes = classes.filter(c => c === classFilter);
+            let html = '';
+            for (let cls of classes) {
+                let students = byClass[cls];
+                if (search) students = students.filter(s => s.student_name.toLowerCase().includes(search));
+                if (!students.length) continue;
+                let presentCount = 0, lateCount = 0;
+                let studentsHtml = '';
+                students.forEach(s => {
+                    const att = attendanceMap[s.student_id];
+                    let status = att ? att.status : 'absent';
+                    if (status === 'present') presentCount++;
+                    else if (status === 'late') lateCount++;
+                    const statusClass = status === 'present' ? 'present' : (status === 'late' ? 'late' : 'absent');
+                    const statusText = status === 'present' ? 'Present' : (status === 'late' ? 'Late' : 'Absent');
+                    studentsHtml += `<div class="student-row"><span>${s.student_name}</span><span class="status-badge status-${statusClass}"><i class="fas ${status === 'present' ? 'fa-check-circle' : (status === 'late' ? 'fa-clock' : 'fa-times-circle')}"></i> ${statusText}</span></div>`;
+                });
+                html += `<div class="card"><div class="card-header"><h3>📚 ${cls}</h3><p>${lecturerNames[cls] || "Staff"}</p></div><div class="students-list">${studentsHtml}</div><div class="card-footer"><strong>${presentCount} present</strong> ${lateCount ? `| ${lateCount} late` : ''} / ${students.length} total</div></div>`;
+            }
+            document.getElementById('lecturerGrid').innerHTML = html || '<div class="no-data">No data</div>';
+        }
+
+        // Download weekly report (CSV)
+        document.getElementById('downloadWeeklyReportBtn').addEventListener('click', async () => {
+            const now = new Date();
+            const day = now.getDay();
+            const monday = new Date(now);
+            monday.setDate(now.getDate() + (day === 0 ? -6 : 1 - day));
+            monday.setHours(0,0,0,0);
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            sunday.setHours(23,59,59,999);
+            const snapshot = await db.collection('attendance')
+                .where('scanned_at', '>=', monday)
+                .where('scanned_at', '<=', sunday)
+                .get();
+            const records = [];
+            snapshot.forEach(doc => records.push(doc.data()));
+            if (!records.length) { alert('No attendance records for this week'); return; }
+            // Build CSV
+            const csvRows = [['Student Name', 'Student ID', 'Class', 'Date', 'Status', 'Scan Time']];
+            for (const rec of records) {
+                let stu = allStudents.find(s => s.student_id === rec.student_id) || {};
+                let date = rec.scanned_at ? rec.scanned_at.toDate() : null;
+                let dateStr = date ? date.toLocaleDateString() : '';
+                let timeStr = date ? date.toLocaleTimeString() : '';
+                csvRows.push([
+                    stu.student_name || rec.student_name || '',
+                    rec.student_id || '',
+                    stu.class || '',
+                    dateStr,
+                    rec.status === 'present' ? 'Present' : 'Late',
+                    timeStr
+                ]);
+            }
+            const csvContent = csvRows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.setAttribute('download', `weekly_report_${monday.toISOString().split('T')[0]}_to_${sunday.toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById('classFilter').addEventListener('change', renderClasses);
+        document.getElementById('searchInput').addEventListener('input', renderClasses);
+        loadData();
+        setInterval(loadData, 30000);
+    </script>
+</body>
+</html>
