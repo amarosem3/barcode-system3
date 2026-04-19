@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ROLLCALL - Register Lecturer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: radial-gradient(circle at 20% 30%, #0a0f1f, #03060c);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .register-card {
+            background: rgba(20,27,43,0.8);
+            backdrop-filter: blur(16px);
+            border-radius: 32px;
+            border: 1px solid rgba(0,242,254,0.3);
+            padding: 2rem;
+            width: 100%;
+            max-width: 450px;
+        }
+        .register-card h2 { text-align: center; color: #00f2fe; margin-bottom: 1.5rem; }
+        .input-group { margin-bottom: 1rem; }
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            background: rgba(30,39,64,0.7);
+            border: 1px solid #2a3442;
+            border-radius: 40px;
+            padding: 0.5rem 1rem;
+        }
+        .input-wrapper i { color: #00f2fe; margin-right: 0.8rem; }
+        .input-wrapper input {
+            background: transparent;
+            border: none;
+            width: 100%;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            border: none;
+            padding: 0.8rem;
+            border-radius: 40px;
+            font-weight: 700;
+            color: #0a0f1f;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        .error, .success { text-align: center; margin-top: 1rem; font-size: 0.85rem; display: none; }
+        .error { color: #ff8a8a; }
+        .success { color: #00e676; }
+        .login-link { text-align: center; margin-top: 1.5rem; font-size: 0.85rem; }
+        .login-link a { color: #00f2fe; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="register-card">
+        <h2><i class="fas fa-user-plus"></i> Lecturer Registration</h2>
+        <form id="registerForm">
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="name" placeholder="Full Name" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" placeholder="Email" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="Password (min 6 chars)" required>
+                </div>
+            </div>
+            <button type="submit">Register</button>
+            <div class="error" id="errorMsg"></div>
+            <div class="success" id="successMsg"></div>
+        </form>
+        <div class="login-link">
+            Already have account? <a href="login.html">Login</a>
+        </div>
+    </div>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAVnzKkl-GtHziHbw6SAdfftVnFkM5xm7E",
+            authDomain: "barcode-2591e.firebaseapp.com",
+            projectId: "barcode-2591e",
+            storageBucket: "barcode-2591e.firebasestorage.app",
+            messagingSenderId: "206115727840",
+            appId: "1:206115727840:web:79c3b16d866782397ba385"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMsg');
+            const successDiv = document.getElementById('successMsg');
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            if (password.length < 6) {
+                errorDiv.innerText = 'Password must be at least 6 characters.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            try {
+                const userCred = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCred.user;
+                await db.collection('users').doc(user.uid).set({
+                    uid: user.uid,
+                    name: name,
+                    email: email,
+                    role: 'lecturer',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                successDiv.innerText = 'Registration successful! Redirecting to login...';
+                successDiv.style.display = 'block';
+                setTimeout(() => window.location.href = 'login.html', 2000);
+            } catch (err) {
+                errorDiv.innerText = err.message;
+                errorDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
