@@ -204,7 +204,6 @@
             document.getElementById('lecturerGrid').innerHTML = html || '<div class="no-data">No data</div>';
         }
 
-        // Download weekly report (CSV)
         document.getElementById('downloadWeeklyReportBtn').addEventListener('click', async () => {
             const now = new Date();
             const day = now.getDay();
@@ -221,7 +220,6 @@
             const records = [];
             snapshot.forEach(doc => records.push(doc.data()));
             if (!records.length) { alert('No attendance records for this week'); return; }
-            // Build CSV
             const csvRows = [['Student Name', 'Student ID', 'Class', 'Date', 'Status', 'Scan Time']];
             for (const rec of records) {
                 let stu = allStudents.find(s => s.student_id === rec.student_id) || {};
