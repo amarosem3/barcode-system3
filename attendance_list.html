@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ROLLCALL - Attendance Log</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0f1219;
+            font-family: 'Inter', sans-serif;
+            color: #e0e0e0;
+            padding: 1rem;
+        }
+        /* Desktop-like header */
+        .header {
+            background: #1e2433;
+            border-radius: 16px;
+            padding: 0.8rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            border: 1px solid #2d3748;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #00f2fe;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            background: #2a3442;
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            text-decoration: none;
+            color: #e0e0e0;
+            font-weight: 500;
+            transition: 0.2s;
+            border: 1px solid #3a4557;
+        }
+        .nav-btn:hover {
+            background: #00f2fe;
+            color: #0a0f1f;
+            border-color: #00f2fe;
+        }
+        /* Controls */
+        .controls {
+            background: #1e2433;
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            border: 1px solid #2d3748;
+        }
+        .date-filter {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .date-filter input, select {
+            background: #2a3442;
+            border: 1px solid #3a4557;
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            color: #e0e0e0;
+        }
+        .btn {
+            background: #2a3442;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 30px;
+            font-weight: 500;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid #3a4557;
+        }
+        .btn-primary {
+            background: #00f2fe;
+            color: #0a0f1f;
+            border-color: #00f2fe;
+        }
+        .btn-danger {
+            background: #ff1744;
+            color: white;
+            border-color: #ff1744;
+        }
+        .btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+        /* Attendance table */
+        .attendance-table {
+            background: #1e2433;
+            border-radius: 16px;
+            overflow-x: auto;
+            border: 1px solid #2d3748;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        th {
+            text-align: left;
+            padding: 0.9rem 1rem;
+            background: #151b26;
+            color: #a0a8c0;
+            font-weight: 600;
+            border-bottom: 2px solid #00f2fe;
+            position: sticky;
+            top: 0;
+        }
+        td {
+            padding: 0.7rem 1rem;
+            border-bottom: 1px solid #2d3748;
+        }
+        tr:hover td {
+            background: rgba(0,242,254,0.08);
+        }
+        .date-group-header {
+            background: #252e3e;
+            font-weight: 600;
+            color: #00f2fe;
+        }
+        .date-group-header td {
+            padding: 0.5rem 1rem;
+            background: #252e3e;
+            border-top: 1px solid #3a4557;
+            border-bottom: 1px solid #3a4557;
+        }
+        .badge-present {
+            background: rgba(0,230,118,0.2);
+            color: #00e676;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .badge-late {
+            background: rgba(255,193,7,0.2);
+            color: #ffc107;
+        }
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: #a0a8c0;
+        }
+        .toast-msg {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #00e676;
+            color: #0a0f1f;
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            display: none;
+            z-index: 1000;
+            font-weight: 500;
+        }
+        @media (max-width: 768px) {
+            th, td { padding: 0.5rem; font-size: 0.75rem; }
+            .controls { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-list-ul"></i> Attendance Log</h1>
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-btn"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="lecturer.html" class="nav-btn"><i class="fas fa-chalkboard-user"></i> Lecturer View</a>
+            <button class="nav-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="date-filter">
+            <label>Date range:</label>
+            <input type="date" id="startDate"> to <input type="date" id="endDate">
+            <button class="btn" onclick="loadAttendance()"><i class="fas fa-filter"></i> Filter</button>
+            <button class="btn" onclick="resetDates()"><i class="fas fa-undo-alt"></i> Reset</button>
+            <button class="btn btn-primary" id="downloadCsvBtn"><i class="fas fa-download"></i> Download CSV</button>
+            <button class="btn" id="downloadWeeklyBtn"><i class="fas fa-calendar-week"></i> Download Weekly Report</button>
+            <button class="btn btn-danger" id="resetWeeklyBtn"><i class="fas fa-trash-alt"></i> Reset This Week</button>
+        </div>
+        <div>Total records: <span id="totalRecords">0</span></div>
+    </div>
+
+    <div class="attendance-table">
+        <table id="attendanceTable">
+            <thead>
+                <tr><th>#</th><th>Student Name</th><th>Student ID</th><th>IC Number</th><th>Class</th><th>Status</th><th>Scan Time</th></tr>
+            </thead>
+            <tbody id="attendanceBody"><tr><td colspan="7" class="no-data">Loading...<\/td><\/tr><\/tbody>
+        </table>
+    </div>
+    <div id="toastMsg" class="toast-msg"></div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAVnzKkl-GtHziHbw6SAdfftVnFkM5xm7E",
+            authDomain: "barcode-2591e.firebaseapp.com",
+            projectId: "barcode-2591e",
+            storageBucket: "barcode-2591e.firebasestorage.app",
+            messagingSenderId: "206115727840",
+            appId: "1:206115727840:web:79c3b16d866782397ba385"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        if (!sessionStorage.getItem('loggedIn')) window.location.href = 'login.html';
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        });
+
+        let studentMap = new Map();
+        async function loadStudentMap() {
+            const snap = await db.collection('students').get();
+            studentMap.clear();
+            snap.forEach(doc => {
+                const data = doc.data();
+                studentMap.set(data.student_id, {
+                    name: data.student_name,
+                    ic: data.ic_number,
+                    class: data.class || 'N/A'
+                });
+            });
+        }
+
+        let allRecords = [];
+        async function loadAttendance() {
+            const tbody = document.getElementById('attendanceBody');
+            tbody.innerHTML = '<tr><td colspan="7" class="no-data">Loading...<\/td><\/tr>';
+            let snapshot = await db.collection('attendance').orderBy('scanned_at', 'desc').get();
+            let records = [];
+            snapshot.forEach(doc => {
+                let data = doc.data();
+                let ts = data.scanned_at ? data.scanned_at.toDate() : null;
+                records.push({ id: doc.id, ...data, scanned_at: ts });
+            });
+            let start = document.getElementById('startDate').value;
+            let end = document.getElementById('endDate').value;
+            if (start) { let s = new Date(start); s.setHours(0,0,0,0); records = records.filter(r => r.scanned_at && r.scanned_at >= s); }
+            if (end) { let e = new Date(end); e.setHours(23,59,59,999); records = records.filter(r => r.scanned_at && r.scanned_at <= e); }
+            records.sort((a,b) => (b.scanned_at||0) - (a.scanned_at||0));
+            allRecords = records;
+            document.getElementById('totalRecords').innerText = records.length;
+            if (!records.length) { tbody.innerHTML = '<tr><td colspan="7" class="no-data">No records<\/td><\/tr>'; return; }
+
+            // Group by date (YYYY-MM-DD)
+            const grouped = {};
+            records.forEach(rec => {
+                const dateKey = rec.scanned_at ? rec.scanned_at.toISOString().split('T')[0] : 'Unknown';
+                if (!grouped[dateKey]) grouped[dateKey] = [];
+                grouped[dateKey].push(rec);
+            });
+            const sortedDates = Object.keys(grouped).sort().reverse(); // newest first
+            let html = '';
+            let counter = 1;
+            for (const date of sortedDates) {
+                const dayRecords = grouped[date];
+                html += `<tr class="date-group-header"><td colspan="7"><i class="fas fa-calendar-day"></i> ${formatDate(date)} (${dayRecords.length} records)<\/td><\/tr>`;
+                dayRecords.forEach(rec => {
+                    let stu = studentMap.get(rec.student_id) || {};
+                    let className = stu.class || 'N/A';
+                    let timeStr = rec.scanned_at ? rec.scanned_at.toLocaleTimeString() : 'Unknown';
+                    let statusBadge = rec.status === 'present' ? 'badge-present' : 'badge-late';
+                    let statusText = rec.status === 'present' ? 'Present' : 'Late';
+                    html += `<tr>
+                        <td>${counter++}</td>
+                        <td>${escapeHtml(stu.name || rec.student_name || '?')}</td>
+                        <td>${escapeHtml(rec.student_id || '-')}</td>
+                        <td>${escapeHtml(stu.ic || rec.ic_number || '-')}</td>
+                        <td>${escapeHtml(className)}</td>
+                        <td><span class="${statusBadge}"><i class="fas ${rec.status === 'present' ? 'fa-check-circle' : 'fa-clock'}"></i> ${statusText}</span></td>
+                        <td>${timeStr}</td>
+                    </tr>`;
+                });
+            }
+            tbody.innerHTML = html;
+        }
+
+        function formatDate(isoDate) {
+            const d = new Date(isoDate);
+            return d.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+
+        function resetDates() { document.getElementById('startDate').value = ''; document.getElementById('endDate').value = ''; loadAttendance(); }
+
+        // Download CSV (current filtered records)
+        document.getElementById('downloadCsvBtn').addEventListener('click', () => {
+            if (!allRecords.length) { showToast('No data to export'); return; }
+            let csvRows = [['Student Name', 'Student ID', 'IC Number', 'Class', 'Status', 'Scan Date', 'Scan Time']];
+            allRecords.forEach(rec => {
+                let stu = studentMap.get(rec.student_id) || {};
+                let date = rec.scanned_at ? rec.scanned_at.toISOString().split('T')[0] : '';
+                let time = rec.scanned_at ? rec.scanned_at.toLocaleTimeString() : '';
+                csvRows.push([
+                    stu.name || rec.student_name || '',
+                    rec.student_id || '',
+                    stu.ic || rec.ic_number || '',
+                    stu.class || '',
+                    rec.status === 'present' ? 'Present' : 'Late',
+                    date,
+                    time
+                ]);
+            });
+            const csvContent = csvRows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.setAttribute('download', `attendance_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast('CSV downloaded');
+        });
+
+        // Download weekly report (current week)
+        document.getElementById('downloadWeeklyBtn').addEventListener('click', async () => {
+            const now = new Date();
+            const day = now.getDay();
+            const monday = new Date(now);
+            monday.setDate(now.getDate() + (day === 0 ? -6 : 1 - day));
+            monday.setHours(0,0,0,0);
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            sunday.setHours(23,59,59,999);
+            const snapshot = await db.collection('attendance')
+                .where('scanned_at', '>=', monday)
+                .where('scanned_at', '<=', sunday)
+                .get();
+            let records = [];
+            snapshot.forEach(doc => records.push(doc.data()));
+            if (!records.length) { showToast('No records for this week'); return; }
+            // Group by student for summary or export detailed
+            const csvRows = [['Student Name', 'Student ID', 'Class', 'Day', 'Status', 'Scan Time']];
+            for (const rec of records) {
+                let stu = studentMap.get(rec.student_id) || {};
+                let date = rec.scanned_at ? rec.scanned_at.toDate() : null;
+                let dayName = date ? date.toLocaleDateString(undefined, { weekday: 'long' }) : '';
+                let time = date ? date.toLocaleTimeString() : '';
+                csvRows.push([
+                    stu.name || rec.student_name || '',
+                    rec.student_id || '',
+                    stu.class || '',
+                    dayName,
+                    rec.status === 'present' ? 'Present' : 'Late',
+                    time
+                ]);
+            }
+            const csvContent = csvRows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.setAttribute('download', `weekly_report_${monday.toISOString().split('T')[0]}_to_${sunday.toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast('Weekly report downloaded');
+        });
+
+        async function resetWeeklyAttendance() {
+            if (!confirm('⚠️ Delete ALL attendance records for this week? Cannot undo.')) return;
+            const now = new Date();
+            const day = now.getDay();
+            const monday = new Date(now);
+            monday.setDate(now.getDate() + (day === 0 ? -6 : 1 - day));
+            monday.setHours(0,0,0,0);
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            sunday.setHours(23,59,59,999);
+            const snapshot = await db.collection('attendance')
+                .where('scanned_at', '>=', monday)
+                .where('scanned_at', '<=', sunday)
+                .get();
+            if (snapshot.empty) { showToast('No records for this week'); return; }
+            const batch = db.batch();
+            snapshot.docs.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+            showToast(`✅ Deleted ${snapshot.size} records for this week`);
+            await loadAttendance();
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toastMsg');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 3000);
+        }
+
+        document.getElementById('resetWeeklyBtn').addEventListener('click', resetWeeklyAttendance);
+
+        loadStudentMap().then(loadAttendance);
+        setInterval(() => loadStudentMap().then(loadAttendance), 30000);
+    </script>
+</body>
+</html>
