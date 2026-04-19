@@ -12,13 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: #0f1219;
-            font-family: 'Inter', sans-serif;
-            color: #e0e0e0;
-            padding: 1rem;
-        }
-        /* Header desktop-like */
+        body { background: #0f1219; font-family: 'Inter', sans-serif; color: #e0e0e0; padding: 1rem; }
         .header {
             background: #1e2433;
             border-radius: 16px;
@@ -31,19 +25,8 @@
             gap: 0.5rem;
             border: 1px solid #2d3748;
         }
-        .header h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: #00f2fe;
-        }
-        .nav-buttons {
-            display: flex;
-            gap: 0.8rem;
-            flex-wrap: wrap;
-        }
+        .header h1 { font-size: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; color: #00f2fe; }
+        .nav-buttons { display: flex; gap: 0.8rem; flex-wrap: wrap; }
         .nav-btn {
             background: #2a3442;
             padding: 0.5rem 1rem;
@@ -54,12 +37,7 @@
             transition: 0.2s;
             border: 1px solid #3a4557;
         }
-        .nav-btn:hover {
-            background: #00f2fe;
-            color: #0a0f1f;
-            border-color: #00f2fe;
-        }
-        /* Stats cards */
+        .nav-btn:hover { background: #00f2fe; color: #0a0f1f; border-color: #00f2fe; }
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -73,12 +51,7 @@
             text-align: center;
             border: 1px solid #2d3748;
         }
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #00f2fe;
-        }
-        /* Cards */
+        .stat-number { font-size: 2rem; font-weight: 700; color: #00f2fe; }
         .card {
             background: #1e2433;
             border-radius: 20px;
@@ -116,9 +89,7 @@
             color: #0a0f1f;
             border-color: #00f2fe;
         }
-        .btn-secondary {
-            background: #2a3442;
-        }
+        .btn-secondary { background: #2a3442; }
         .time-picker {
             display: flex;
             gap: 0.5rem;
@@ -186,7 +157,6 @@
         <div class="stat-card"><i class="fas fa-chart-line"></i> Attendance Rate: <div class="stat-number" id="attendanceRate">0%</div></div>
     </div>
 
-    <!-- Test Scanner Logic & Email -->
     <div class="card">
         <div class="card-header"><i class="fas fa-vial"></i> Test Scanner Logic & Email</div>
         <div class="card-body">
@@ -204,7 +174,6 @@
         </div>
     </div>
 
-    <!-- Add New Student -->
     <div class="card">
         <div class="card-header"><i class="fas fa-user-graduate"></i> Add New Student</div>
         <div class="card-body">
@@ -218,7 +187,6 @@
         </div>
     </div>
 
-    <!-- Students Grouped by Class -->
     <div class="card">
         <div class="card-header"><i class="fas fa-users-viewfinder"></i> Students by Class</div>
         <div class="card-body" id="studentsByClassContainer">Loading...</div>
