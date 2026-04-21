@@ -12,110 +12,140 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #0f1219; font-family: 'Inter', sans-serif; color: #e0e0e0; padding: 1rem; }
+        :root {
+            --bg-page: #f4f6fa;
+            --bg-card: #ffffff;
+            --text-primary: #1e2a3e;
+            --text-secondary: #5a6e8a;
+            --border: #e2e8f0;
+            --accent: #3b82f6;
+            --accent-light: #eff6ff;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        [data-theme="dark"] {
+            --bg-page: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --accent: #38bdf8;
+            --accent-light: #1e293b;
+        }
+        body {
+            background: var(--bg-page);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+            padding: 1rem;
+            transition: background 0.2s, color 0.2s;
+        }
         .header {
-            background: #1e2433;
-            border-radius: 16px;
-            padding: 0.8rem 1.5rem;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 24px;
+            padding: 1rem 1.5rem;
             margin-bottom: 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 0.5rem;
-            border: 1px solid #2d3748;
+            color: white;
         }
-        .header h1 { font-size: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; color: #00f2fe; }
+        .header h1 { font-size: 1.6rem; display: flex; align-items: center; gap: 0.5rem; }
         .nav-buttons { display: flex; gap: 0.8rem; flex-wrap: wrap; }
         .nav-btn {
-            background: #2a3442;
+            background: rgba(255,255,255,0.2);
             padding: 0.5rem 1rem;
             border-radius: 40px;
             text-decoration: none;
-            color: #e0e0e0;
+            color: white;
             font-weight: 500;
             transition: 0.2s;
-            border: 1px solid #3a4557;
+            border: none;
+            cursor: pointer;
         }
-        .nav-btn:hover { background: #00f2fe; color: #0a0f1f; border-color: #00f2fe; }
+        .nav-btn:hover { background: rgba(255,255,255,0.35); transform: translateY(-2px); }
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
         }
         .stat-card {
-            background: #1e2433;
+            background: var(--bg-card);
             border-radius: 20px;
-            padding: 1rem;
+            padding: 1.2rem;
             text-align: center;
-            border: 1px solid #2d3748;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
         }
-        .stat-number { font-size: 2rem; font-weight: 700; color: #00f2fe; }
+        .stat-number { font-size: 2rem; font-weight: 700; color: var(--accent); margin-top: 0.25rem; }
         .card {
-            background: #1e2433;
+            background: var(--bg-card);
             border-radius: 20px;
-            border: 1px solid #2d3748;
+            border: 1px solid var(--border);
             margin-bottom: 1.5rem;
             overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
         }
         .card-header {
-            background: #151b26;
-            padding: 1rem;
-            border-bottom: 2px solid #00f2fe;
+            background: var(--bg-card);
+            padding: 1rem 1.2rem;
+            border-bottom: 2px solid var(--accent);
             font-weight: 600;
+            font-size: 1.1rem;
         }
-        .card-body { padding: 1rem; }
+        .card-body { padding: 1.2rem; }
         .form-control {
             width: 100%;
-            background: #2a3442;
-            border: 1px solid #3a4557;
-            padding: 0.7rem;
+            background: var(--bg-page);
+            border: 1px solid var(--border);
+            padding: 0.7rem 1rem;
             border-radius: 30px;
-            color: #e0e0e0;
+            color: var(--text-primary);
         }
         .btn {
-            background: #2a3442;
-            border: 1px solid #3a4557;
+            background: var(--accent);
+            border: none;
             padding: 0.6rem 1.2rem;
             border-radius: 30px;
             font-weight: 500;
-            color: #e0e0e0;
+            color: white;
             cursor: pointer;
             transition: 0.2s;
         }
-        .btn-primary {
-            background: #00f2fe;
-            color: #0a0f1f;
-            border-color: #00f2fe;
+        .btn-secondary {
+            background: var(--bg-page);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
         }
-        .btn-secondary { background: #2a3442; }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #8b5cf6); }
         .time-picker {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.8rem;
             align-items: center;
             flex-wrap: wrap;
-            margin-bottom: 1rem;
+            margin: 1rem 0;
         }
         .test-result {
             margin-top: 1rem;
             padding: 1rem;
             border-radius: 16px;
-            background: #2a3442;
             font-weight: 500;
         }
-        .test-result.present { background: rgba(0,230,118,0.2); color: #00e676; }
-        .test-result.late { background: rgba(255,193,7,0.2); color: #ffc107; }
-        .test-result.invalid { background: rgba(255,23,68,0.2); color: #ff8a8a; }
+        .test-result.present { background: rgba(16,185,129,0.15); color: #10b981; }
+        .test-result.late { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .test-result.invalid { background: rgba(239,68,68,0.15); color: #ef4444; }
         .class-group { margin-bottom: 2rem; }
         .class-header {
-            background: #2a3442;
+            background: var(--accent-light);
             padding: 0.5rem 1rem;
             border-radius: 20px;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.8rem;
             display: inline-block;
             font-weight: 600;
-            color: #00f2fe;
+            color: var(--accent);
         }
         .student-table {
             width: 100%;
@@ -124,16 +154,21 @@
         .student-table th, .student-table td {
             padding: 0.8rem;
             text-align: left;
-            border-bottom: 1px solid #2d3748;
+            border-bottom: 1px solid var(--border);
         }
-        .student-table th { color: #a0a8c0; font-weight: 500; }
-        .student-table tr:hover { background: rgba(0,242,254,0.05); }
+        .student-table th { color: var(--text-secondary); font-weight: 500; }
+        .student-table tr:hover { background: rgba(59,130,246,0.05); }
         .delete-btn {
             background: none;
             border: none;
-            color: #ff1744;
+            color: var(--danger);
             cursor: pointer;
-            font-size: 1rem;
+        }
+        .theme-toggle {
+            background: rgba(255,255,255,0.2);
+            border-radius: 30px;
+            padding: 0.3rem 0.8rem;
+            cursor: pointer;
         }
         @media (max-width: 700px) {
             .student-table th, .student-table td { padding: 0.5rem; font-size: 0.8rem; }
@@ -144,16 +179,19 @@
     <div class="header">
         <h1><i class="fas fa-qrcode"></i> ROLLCALL Admin</h1>
         <div class="nav-buttons">
-            <a href="attendance_list.html" class="nav-btn"><i class="fas fa-list"></i> Attendance Log</a>
-            <a href="lecturer.html" class="nav-btn"><i class="fas fa-chalkboard-user"></i> Lecturer View</a>
+            <a href="attendance_list.html" class="nav-btn"><i class="fas fa-list"></i> Log</a>
+            <a href="lecturer.html" class="nav-btn"><i class="fas fa-chalkboard-user"></i> Lecturer</a>
+            <a href="scan_attendance.html" class="nav-btn"><i class="fas fa-qrcode"></i> Scan</a>
+            <a href="settings.html" class="nav-btn"><i class="fas fa-cog"></i> Settings</a>
             <button class="nav-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            <button class="nav-btn theme-toggle" id="themeToggle"><i class="fas fa-moon"></i> Dark</button>
         </div>
     </div>
 
     <div class="stats-grid">
         <div class="stat-card"><i class="fas fa-users"></i> Total Students: <div class="stat-number" id="totalStudents">0</div></div>
-        <div class="stat-card"><i class="fas fa-check-circle" style="color:#00e676;"></i> Present Today: <div class="stat-number" id="presentCount">0</div></div>
-        <div class="stat-card"><i class="fas fa-times-circle" style="color:#ff1744;"></i> Absent Today: <div class="stat-number" id="absentCount">0</div></div>
+        <div class="stat-card"><i class="fas fa-check-circle" style="color:var(--success);"></i> Hadir Hari Ini: <div class="stat-number" id="presentCount">0</div></div>
+        <div class="stat-card"><i class="fas fa-clock" style="color:var(--warning);"></i> Late: <div class="stat-number" id="lateCount">0</div></div>
         <div class="stat-card"><i class="fas fa-chart-line"></i> Attendance Rate: <div class="stat-number" id="attendanceRate">0%</div></div>
     </div>
 
@@ -165,10 +203,10 @@
                 <button class="btn btn-secondary" id="testBefore745">🟢 Before 7:45 AM (Present)</button>
                 <button class="btn btn-secondary" id="testLate">🟠 7:45 – 8:15 AM (Late)</button>
                 <button class="btn btn-secondary" id="testAfter815">🔴 After 8:15 AM (Ignored)</button>
-                <span style="margin: 0 0.5rem;">or</span>
-                <input type="time" id="customTime" step="1" value="08:00">
-                <button class="btn btn-secondary" id="testCustomTime">Test Custom Time</button>
-                <button class="btn btn-primary" id="testEmailBtn"><i class="fas fa-envelope"></i> Test Email Alert</button>
+                <span>or</span>
+                <input type="time" id="customTime" step="1" value="08:00" style="background:var(--bg-page); border:1px solid var(--border); border-radius:30px; padding:0.4rem;">
+                <button class="btn btn-secondary" id="testCustomTime">Test</button>
+                <button class="btn btn-primary" id="testEmailBtn"><i class="fas fa-envelope"></i> Test Email</button>
             </div>
             <div id="testResult" class="test-result"></div>
         </div>
@@ -178,9 +216,9 @@
         <div class="card-header"><i class="fas fa-user-graduate"></i> Add New Student</div>
         <div class="card-body">
             <form id="studentForm" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                <input type="text" id="ic_number" class="form-control" placeholder="IC Number" style="flex:1;" required>
-                <input type="text" id="student_id" class="form-control" placeholder="Student ID" style="flex:1;" required>
-                <input type="text" id="student_name" class="form-control" placeholder="Student Name" style="flex:2;" required>
+                <input type="text" id="ic_number" class="form-control" placeholder="IC Number" required style="flex:1;">
+                <input type="text" id="student_id" class="form-control" placeholder="Student ID" required style="flex:1;">
+                <input type="text" id="student_name" class="form-control" placeholder="Student Name" required style="flex:2;">
                 <input type="text" id="class_name" class="form-control" placeholder="Class (e.g., DFK5A)" style="flex:1;">
                 <button type="submit" class="btn btn-primary">Add Student</button>
             </form>
@@ -205,20 +243,40 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        (function() { emailjs.init("V6od5_xVWtn8C1ZWv"); })();
+        emailjs.init("V6od5_xVWtn8C1ZWv");
 
+        // Auth & role
         if (!sessionStorage.getItem('loggedIn')) window.location.href = 'login.html';
         if (sessionStorage.getItem('role') !== 'admin') window.location.href = 'lecturer.html';
 
-        document.getElementById('logoutBtn').addEventListener('click', () => {
+        document.getElementById('logoutBtn').onclick = () => {
             auth.signOut().then(() => { sessionStorage.clear(); window.location.href = 'login.html'; });
-        });
+        };
 
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        if (currentTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i> Dark';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i> Light';
+            }
+        });
+        if (currentTheme === 'dark') themeToggle.innerHTML = '<i class="fas fa-sun"></i> Light';
+
+        // Scanner logic simulation
         const LIMIT_LATE = "07:45", LIMIT_INVALID = "08:15";
         function getStatusFromTime(timeStr) {
-            if (timeStr < LIMIT_LATE) return { status: 'present', label: 'Present 🟢 (will be recorded)' };
-            if (timeStr < LIMIT_INVALID) return { status: 'late', label: 'Late 🟠 (will be recorded)' };
-            return { status: 'invalid', label: 'INVALID 🔴 (ignored, not recorded)' };
+            if (timeStr < LIMIT_LATE) return { status: 'present', label: 'Present 🟢 (akan direkod)' };
+            if (timeStr < LIMIT_INVALID) return { status: 'late', label: 'Late 🟠 (akan direkod)' };
+            return { status: 'invalid', label: 'Invalid 🔴 (tidak direkod)' };
         }
         function showTestResult(timeStr) {
             const r = getStatusFromTime(timeStr);
@@ -226,50 +284,57 @@
             div.className = `test-result ${r.status === 'present' ? 'present' : (r.status === 'late' ? 'late' : 'invalid')}`;
             div.innerHTML = `<i class="fas ${r.status === 'present' ? 'fa-check-circle' : (r.status === 'late' ? 'fa-clock' : 'fa-ban')}"></i> Scan at <strong>${timeStr}</strong> → ${r.label}`;
         }
-        document.getElementById('testBefore745').addEventListener('click', () => showTestResult("07:30"));
-        document.getElementById('testLate').addEventListener('click', () => showTestResult("08:00"));
-        document.getElementById('testAfter815').addEventListener('click', () => showTestResult("08:20"));
-        document.getElementById('testCustomTime').addEventListener('click', () => {
+        document.getElementById('testBefore745').onclick = () => showTestResult("07:30");
+        document.getElementById('testLate').onclick = () => showTestResult("08:00");
+        document.getElementById('testAfter815').onclick = () => showTestResult("08:20");
+        document.getElementById('testCustomTime').onclick = () => {
             const custom = document.getElementById('customTime').value;
             if (custom) showTestResult(custom);
-            else alert('Please select a time');
-        });
-        document.getElementById('testEmailBtn').addEventListener('click', async () => {
+            else alert('Please select time');
+        };
+        document.getElementById('testEmailBtn').onclick = async () => {
             const div = document.getElementById('testResult');
             div.innerHTML = 'Sending test email...';
             div.className = 'test-result';
             try {
                 const res = await emailjs.send('service_4hnvptf', 'template_ugspg5y', {
-                    to_email: 'amarosem3@gmail.com','naqshbandi232@gmail.com',
-                    subject: '🧪 Test Email from ROLLCALL',
+                    to_email: 'amarosem3@gmail.com',
+                    subject: 'Test Email from ROLLCALL',
                     name: 'Admin',
-                    message: 'This is a test email from your ROLLCALL attendance system.',
+                    message: 'System test email',
                     date: new Date().toLocaleDateString()
                 });
                 if (res.status === 200) {
-                    div.innerHTML = '✅ Test email sent! Check your inbox.';
+                    div.innerHTML = '✅ Test email sent!';
                     div.className = 'test-result present';
                 } else {
-                    div.innerHTML = '❌ Failed to send test email.';
+                    div.innerHTML = '❌ Failed to send email.';
                     div.className = 'test-result invalid';
                 }
             } catch(e) {
                 div.innerHTML = '❌ Error: ' + e.message;
                 div.className = 'test-result invalid';
             }
-        });
+        };
 
+        // STATISTICS FIXED: Present = present+late, Late count shown separately
         async function loadStats() {
             const studentsSnap = await db.collection('students').get();
             const total = studentsSnap.size;
             const today = new Date().toISOString().split('T')[0];
             const attendanceSnap = await db.collection('attendance').where('scan_date', '==', today).get();
-            const present = attendanceSnap.size;
-            const absent = total - present;
-            const rate = total ? Math.round((present / total) * 100) : 0;
+            let presentCount = 0, lateCount = 0;
+            attendanceSnap.forEach(doc => {
+                const status = doc.data().status;
+                if (status === 'present') presentCount++;
+                else if (status === 'late') lateCount++;
+            });
+            const hadir = presentCount + lateCount;
+            const absent = total - hadir;
+            const rate = total ? Math.round((hadir / total) * 100) : 0;
             document.getElementById('totalStudents').innerText = total;
-            document.getElementById('presentCount').innerText = present;
-            document.getElementById('absentCount').innerText = absent;
+            document.getElementById('presentCount').innerText = hadir;      // Total hadir (present+late)
+            document.getElementById('lateCount').innerText = lateCount;     // Just late
             document.getElementById('attendanceRate').innerText = rate + '%';
         }
 
@@ -289,9 +354,15 @@
             let html = '';
             for (const cls of sortedClasses) {
                 const studentsInClass = grouped[cls];
-                html += `<div class="class-group"><div class="class-header"><i class="fas fa-chalkboard-user"></i> ${cls} (${studentsInClass.length} students)</div><table class="student-table"><thead><tr><th>IC Number</th><th>Student ID</th><th>Name</th><th>Action</th></tr></thead><tbody>`;
+                html += `<div class="class-group"><div class="class-header"><i class="fas fa-chalkboard-user"></i> ${cls} (${studentsInClass.length})</div>
+                        <table class="student-table"><thead><tr><th>IC Number</th><th>Student ID</th><th>Name</th><th>Action</th></tr></thead><tbody>`;
                 studentsInClass.forEach(s => {
-                    html += `<tr><td>${escapeHtml(s.ic_number || '')}</td><td>${escapeHtml(s.student_id || '')}</td><td>${escapeHtml(s.student_name || '')}</td><td><button class="delete-btn" data-id="${s.id}"><i class="fas fa-trash"></i> Delete</button></td></tr>`;
+                    html += `<tr>
+                        <td>${escapeHtml(s.ic_number || '')}</td>
+                        <td>${escapeHtml(s.student_id || '')}</td>
+                        <td>${escapeHtml(s.student_name || '')}</td>
+                        <td><button class="delete-btn" data-id="${s.id}"><i class="fas fa-trash"></i> Delete</button></td>
+                    </tr>`;
                 });
                 html += `</tbody></table></div>`;
             }
@@ -333,7 +404,7 @@
 
         loadStats();
         loadStudentsGrouped();
-        setInterval(() => { loadStats(); loadStudentsGrouped(); }, 30000);
+        setInterval(() => { loadStats(); loadStudentsGrouped(); }, 15000);
     </script>
 </body>
 </html>
