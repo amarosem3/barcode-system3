@@ -168,18 +168,41 @@
             }
         };
 
-        async function loadStats() {
-            const studentsSnap = await db.collection('students').get();
-            const total = studentsSnap.size;
-            const today = new Date().toISOString().split('T')[0];
-            const attendanceSnap = await db.collection('attendance').where('scan_date', '==', today).get();
-            const present = attendanceSnap.size;
-            const absent = total - present;
-            const rate = total ? Math.round((present / total) * 100) : 0;
-            document.getElementById('totalStudents').innerText = total;
-            document.getElementById('presentCount').innerText = present;
-            document.getElementById('absentCount').innerText = absent;
-            document.getElementById('attendanceRate').innerText = rate + '%';
+                async function loadStats() {
+            try {
+                // Get total students
+                const studentsSnap = await db.collection('students').get();
+                const total = studentsSnap.size;
+                
+                // Get today's date in Malaysia time (UTC+8)
+                const now = new Date();
+                const malaysiaTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
+                const todayStr = malaysiaTime.toISOString().split('T')[0];
+                
+                // Create start and end of day (Malaysia time)
+                const startOfDay = new Date(todayStr + 'T00:00:00+08:00');
+                const endOfDay = new Date(todayStr + 'T23:59:59+08:00');
+                
+                // Query attendance for today using scanned_at
+                const attendanceSnap = await db.collection('attendance')
+                    .where('scanned_at', '>=', startOfDay)
+                    .where('scanned_at', '<=', endOfDay)
+                    .get();
+                
+                const present = attendanceSnap.size;
+                const absent = total - present;
+                const rate = total ? Math.round((present / total) * 100) : 0;
+                
+                // Update UI
+                document.getElementById('totalStudents').innerText = total;
+                document.getElementById('presentCount').innerText = present;
+                document.getElementById('absentCount').innerText = absent;
+                document.getElementById('attendanceRate').innerText = rate + '%';
+                
+                console.log(`📊 Stats: Total=${total}, Present=${present}, Rate=${rate}%`);
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
         }
 
         async function loadStudentsGrouped() {
