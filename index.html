@@ -10,203 +10,69 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --bg-page: #f4f6fa;
-            --bg-card: #ffffff;
-            --text-primary: #1e2a3e;
-            --text-secondary: #5a6e8a;
-            --border: #e2e8f0;
-            --accent: #3b82f6;
-            --accent-light: #eff6ff;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-        }
-        [data-theme="dark"] {
-            --bg-page: #0f172a;
-            --bg-card: #1e293b;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --border: #334155;
-            --accent: #38bdf8;
-            --accent-light: #1e293b;
-        }
-        body {
-            background: var(--bg-page);
-            font-family: 'Inter', sans-serif;
-            color: var(--text-primary);
-            padding: 1rem;
-            transition: background 0.2s, color 0.2s;
-        }
-        .header {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            border-radius: 24px;
-            padding: 1rem 1.5rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            color: white;
-        }
-        .header h1 { font-size: 1.6rem; display: flex; align-items: center; gap: 0.5rem; }
+        body { background: #0f1219; font-family: 'Inter', sans-serif; color: #e0e0e0; padding: 1rem; }
+        .header { background: #1e2433; border-radius: 16px; padding: 0.8rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; border: 1px solid #2d3748; }
+        .header h1 { font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem; color: #00f2fe; }
         .nav-buttons { display: flex; gap: 0.8rem; flex-wrap: wrap; }
-        .nav-btn {
-            background: rgba(255,255,255,0.2);
-            padding: 0.5rem 1rem;
-            border-radius: 40px;
-            text-decoration: none;
-            color: white;
-            font-weight: 500;
-            transition: 0.2s;
-            border: none;
-            cursor: pointer;
-        }
-        .nav-btn:hover { background: rgba(255,255,255,0.35); transform: translateY(-2px); }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        .stat-card {
-            background: var(--bg-card);
-            border-radius: 20px;
-            padding: 1.2rem;
-            text-align: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            border: 1px solid var(--border);
-        }
-        .stat-number { font-size: 2rem; font-weight: 700; color: var(--accent); margin-top: 0.25rem; }
-        .card {
-            background: var(--bg-card);
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            margin-bottom: 1.5rem;
-            overflow: hidden;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-        }
-        .card-header {
-            background: var(--bg-card);
-            padding: 1rem 1.2rem;
-            border-bottom: 2px solid var(--accent);
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-        .card-body { padding: 1.2rem; }
-        .form-control {
-            width: 100%;
-            background: var(--bg-page);
-            border: 1px solid var(--border);
-            padding: 0.7rem 1rem;
-            border-radius: 30px;
-            color: var(--text-primary);
-        }
-        .btn {
-            background: var(--accent);
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 30px;
-            font-weight: 500;
-            color: white;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn-secondary {
-            background: var(--bg-page);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-        }
-        .btn-primary { background: linear-gradient(135deg, #3b82f6, #8b5cf6); }
-        .time-picker {
-            display: flex;
-            gap: 0.8rem;
-            align-items: center;
-            flex-wrap: wrap;
-            margin: 1rem 0;
-        }
-        .test-result {
-            margin-top: 1rem;
-            padding: 1rem;
-            border-radius: 16px;
-            font-weight: 500;
-        }
-        .test-result.present { background: rgba(16,185,129,0.15); color: #10b981; }
-        .test-result.late { background: rgba(245,158,11,0.15); color: #f59e0b; }
-        .test-result.invalid { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .nav-btn { background: #2a3442; padding: 0.5rem 1rem; border-radius: 40px; text-decoration: none; color: #e0e0e0; font-weight: 500; border: 1px solid #3a4557; }
+        .nav-btn:hover { background: #00f2fe; color: #0a0f1f; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: #1e2433; border-radius: 20px; padding: 1rem; text-align: center; border: 1px solid #2d3748; }
+        .stat-number { font-size: 2rem; font-weight: 700; color: #00f2fe; }
+        .card { background: #1e2433; border-radius: 20px; border: 1px solid #2d3748; margin-bottom: 1.5rem; overflow: hidden; }
+        .card-header { background: #151b26; padding: 1rem; border-bottom: 2px solid #00f2fe; font-weight: 600; }
+        .card-body { padding: 1rem; }
+        .form-control { width: 100%; background: #2a3442; border: 1px solid #3a4557; padding: 0.7rem; border-radius: 30px; color: #e0e0e0; }
+        .btn { background: #2a3442; border: 1px solid #3a4557; padding: 0.5rem 1.2rem; border-radius: 30px; font-weight: 500; color: #e0e0e0; cursor: pointer; margin: 0.2rem; }
+        .btn-primary { background: #00f2fe; color: #0a0f1f; border-color: #00f2fe; }
+        .btn-danger { background: #ff1744; color: white; border-color: #ff1744; }
         .class-group { margin-bottom: 2rem; }
-        .class-header {
-            background: var(--accent-light);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            margin-bottom: 0.8rem;
-            display: inline-block;
-            font-weight: 600;
-            color: var(--accent);
-        }
-        .student-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .student-table th, .student-table td {
-            padding: 0.8rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-        .student-table th { color: var(--text-secondary); font-weight: 500; }
-        .student-table tr:hover { background: rgba(59,130,246,0.05); }
-        .delete-btn {
-            background: none;
-            border: none;
-            color: var(--danger);
-            cursor: pointer;
-        }
-        .theme-toggle {
-            background: rgba(255,255,255,0.2);
-            border-radius: 30px;
-            padding: 0.3rem 0.8rem;
-            cursor: pointer;
-        }
-        @media (max-width: 700px) {
-            .student-table th, .student-table td { padding: 0.5rem; font-size: 0.8rem; }
-        }
+        .class-header { background: rgba(0,242,254,0.1); padding: 0.5rem 1rem; border-radius: 20px; margin-bottom: 0.5rem; display: inline-block; }
+        .student-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+        .student-table th, .student-table td { padding: 0.8rem; text-align: left; border-bottom: 1px solid #2d3748; }
+        .student-table th { color: #a0a8c0; font-weight: 500; }
+        .student-table tr:hover { background: rgba(0,242,254,0.05); }
+        .delete-btn { background: none; border: none; color: #ff1744; cursor: pointer; font-size: 1rem; }
+        .test-result { margin-top: 1rem; padding: 1rem; border-radius: 20px; background: #2a3442; font-weight: 500; }
+        .test-result.present { background: rgba(0,230,118,0.2); color: #00e676; }
+        .test-result.late { background: rgba(255,193,7,0.2); color: #ffc107; }
+        .test-result.invalid { background: rgba(255,23,68,0.2); color: #ff8a8a; }
+        .time-picker { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
+        @media (max-width: 700px) { .student-table th, .student-table td { padding: 0.5rem; font-size: 0.8rem; } }
     </style>
 </head>
 <body>
     <div class="header">
         <h1><i class="fas fa-qrcode"></i> ROLLCALL Admin</h1>
         <div class="nav-buttons">
-            <a href="attendance_list.html" class="nav-btn"><i class="fas fa-list"></i> Log</a>
-            <a href="lecturer.html" class="nav-btn"><i class="fas fa-chalkboard-user"></i> Lecturer</a>
-            <a href="scan_attendance.html" class="nav-btn"><i class="fas fa-qrcode"></i> Scan</a>
-            <a href="settings.html" class="nav-btn"><i class="fas fa-cog"></i> Settings</a>
+            <a href="attendance_list.html" class="nav-btn"><i class="fas fa-list"></i> Attendance Log</a>
+            <a href="lecturer.html" class="nav-btn"><i class="fas fa-chalkboard-user"></i> Lecturer View</a>
             <button class="nav-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
-            <button class="nav-btn theme-toggle" id="themeToggle"><i class="fas fa-moon"></i> Dark</button>
         </div>
     </div>
 
     <div class="stats-grid">
         <div class="stat-card"><i class="fas fa-users"></i> Total Students: <div class="stat-number" id="totalStudents">0</div></div>
-        <div class="stat-card"><i class="fas fa-check-circle" style="color:var(--success);"></i> Hadir Hari Ini: <div class="stat-number" id="presentCount">0</div></div>
-        <div class="stat-card"><i class="fas fa-clock" style="color:var(--warning);"></i> Late: <div class="stat-number" id="lateCount">0</div></div>
+        <div class="stat-card"><i class="fas fa-check-circle" style="color:#00e676;"></i> Present Today: <div class="stat-number" id="presentCount">0</div></div>
+        <div class="stat-card"><i class="fas fa-times-circle" style="color:#ff1744;"></i> Absent Today: <div class="stat-number" id="absentCount">0</div></div>
         <div class="stat-card"><i class="fas fa-chart-line"></i> Attendance Rate: <div class="stat-number" id="attendanceRate">0%</div></div>
     </div>
 
     <div class="card">
         <div class="card-header"><i class="fas fa-vial"></i> Test Scanner Logic & Email</div>
         <div class="card-body">
-            <p>Simulate scan time to see classification (present / late / ignored after 8:15 AM).</p>
+            <p>Pilih masa untuk menguji pengkelasan kehadiran (present / late / invalid).</p>
             <div class="time-picker">
-                <button class="btn btn-secondary" id="testBefore745">🟢 Before 7:45 AM (Present)</button>
-                <button class="btn btn-secondary" id="testLate">🟠 7:45 – 8:15 AM (Late)</button>
-                <button class="btn btn-secondary" id="testAfter815">🔴 After 8:15 AM (Ignored)</button>
+                <button class="btn" id="testBefore745">🟢 Before 7:45 AM (Present)</button>
+                <button class="btn" id="testLate">🟠 7:45 – 8:15 AM (Late)</button>
+                <button class="btn" id="testAfter815">🔴 After 8:15 AM (Ignored)</button>
                 <span>or</span>
-                <input type="time" id="customTime" step="1" value="08:00" style="background:var(--bg-page); border:1px solid var(--border); border-radius:30px; padding:0.4rem;">
-                <button class="btn btn-secondary" id="testCustomTime">Test</button>
-                <button class="btn btn-primary" id="testEmailBtn"><i class="fas fa-envelope"></i> Test Email</button>
+                <input type="time" id="customTime" step="1" value="08:00">
+                <button class="btn" id="testCustomTime">Test Custom Time</button>
+                <button class="btn btn-primary" id="testEmailBtn">📧 Test Email Alert</button>
             </div>
             <div id="testResult" class="test-result"></div>
         </div>
@@ -216,12 +82,23 @@
         <div class="card-header"><i class="fas fa-user-graduate"></i> Add New Student</div>
         <div class="card-body">
             <form id="studentForm" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                <input type="text" id="ic_number" class="form-control" placeholder="IC Number" required style="flex:1;">
-                <input type="text" id="student_id" class="form-control" placeholder="Student ID" required style="flex:1;">
-                <input type="text" id="student_name" class="form-control" placeholder="Student Name" required style="flex:2;">
-                <input type="text" id="class_name" class="form-control" placeholder="Class (e.g., DFK5A)" style="flex:1;">
+                <input type="text" id="ic_number" class="form-control" placeholder="IC Number" style="flex:1;" required>
+                <input type="text" id="student_id" class="form-control" placeholder="Student ID" style="flex:1;" required>
+                <input type="text" id="student_name" class="form-control" placeholder="Student Name" style="flex:2;" required>
+                <input type="text" id="class_name" class="form-control" placeholder="Class" style="flex:1;">
+                <input type="number" id="semester" class="form-control" placeholder="Semester" style="flex:1;">
                 <button type="submit" class="btn btn-primary">Add Student</button>
             </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><i class="fas fa-file-excel"></i> Import Students from Excel</div>
+        <div class="card-body">
+            <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" class="form-control" style="display: inline-block; width: auto;">
+            <button class="btn btn-primary" id="importExcelBtn"><i class="fas fa-upload"></i> Import & Replace</button>
+            <button class="btn" id="downloadTemplateBtn"><i class="fas fa-download"></i> Download Template</button>
+            <p style="font-size: 0.8rem; margin-top: 0.5rem; color: #a0a8c0;">Format: student_name, student_id, ic_number, class, semester</p>
         </div>
     </div>
 
@@ -232,57 +109,37 @@
 
     <script>
         const firebaseConfig = {
-  apiKey: "AIzaSyBgqq_FVLDrlPew5mvUI84gJtNcNfGQchI",
-  authDomain: "rollcall-new-db.firebaseapp.com",
-  projectId: "rollcall-new-db",
-  storageBucket: "rollcall-new-db.firebasestorage.app",
-  messagingSenderId: "803179166995",
-  appId: "1:803179166995:web:d55ebffb4bfa934bb2eee6"
-};
+            apiKey: "AIzaSyBgqq_FVLDrlPew5mvUI84gJtNcNfGQchI",
+            authDomain: "rollcall-new-db.firebaseapp.com",
+            projectId: "rollcall-new-db",
+            storageBucket: "rollcall-new-db.firebasestorage.app",
+            messagingSenderId: "803179166995",
+            appId: "1:803179166995:web:d55ebffb4bfa934bb2eee6"
+        };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
         emailjs.init("V6od5_xVWtn8C1ZWv");
 
-        // Auth & role
         if (!sessionStorage.getItem('loggedIn')) window.location.href = 'login.html';
         if (sessionStorage.getItem('role') !== 'admin') window.location.href = 'lecturer.html';
 
-        document.getElementById('logoutBtn').onclick = () => {
+        document.getElementById('logoutBtn').addEventListener('click', () => {
             auth.signOut().then(() => { sessionStorage.clear(); window.location.href = 'login.html'; });
-        };
-
-        // Theme toggle
-        const themeToggle = document.getElementById('themeToggle');
-        const currentTheme = localStorage.getItem('theme') || 'light';
-        if (currentTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
-        themeToggle.addEventListener('click', () => {
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            if (isDark) {
-                document.documentElement.removeAttribute('data-theme');
-                localStorage.setItem('theme', 'light');
-                themeToggle.innerHTML = '<i class="fas fa-moon"></i> Dark';
-            } else {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
-                themeToggle.innerHTML = '<i class="fas fa-sun"></i> Light';
-            }
         });
-        if (currentTheme === 'dark') themeToggle.innerHTML = '<i class="fas fa-sun"></i> Light';
 
-        // Scanner logic simulation
         const LIMIT_LATE = "07:45", LIMIT_INVALID = "08:15";
         function getStatusFromTime(timeStr) {
-            if (timeStr < LIMIT_LATE) return { status: 'present', label: 'Present 🟢 (akan direkod)' };
-            if (timeStr < LIMIT_INVALID) return { status: 'late', label: 'Late 🟠 (akan direkod)' };
-            return { status: 'invalid', label: 'Invalid 🔴 (tidak direkod)' };
+            if (timeStr < LIMIT_LATE) return { status: 'present', label: 'Present 🟢' };
+            if (timeStr < LIMIT_INVALID) return { status: 'late', label: 'Late 🟠' };
+            return { status: 'invalid', label: 'INVALID 🔴 (ignored)' };
         }
         function showTestResult(timeStr) {
             const r = getStatusFromTime(timeStr);
             const div = document.getElementById('testResult');
-            div.className = `test-result ${r.status === 'present' ? 'present' : (r.status === 'late' ? 'late' : 'invalid')}`;
-            div.innerHTML = `<i class="fas ${r.status === 'present' ? 'fa-check-circle' : (r.status === 'late' ? 'fa-clock' : 'fa-ban')}"></i> Scan at <strong>${timeStr}</strong> → ${r.label}`;
+            div.className = `test-result ${r.status}`;
+            div.innerHTML = `Scan at <strong>${timeStr}</strong> → ${r.label}`;
         }
         document.getElementById('testBefore745').onclick = () => showTestResult("07:30");
         document.getElementById('testLate').onclick = () => showTestResult("08:00");
@@ -290,51 +147,38 @@
         document.getElementById('testCustomTime').onclick = () => {
             const custom = document.getElementById('customTime').value;
             if (custom) showTestResult(custom);
-            else alert('Please select time');
         };
+
         document.getElementById('testEmailBtn').onclick = async () => {
             const div = document.getElementById('testResult');
-            div.innerHTML = 'Sending test email...';
-            div.className = 'test-result';
+            div.innerHTML = 'Sending...';
             try {
-                const res = await emailjs.send('service_4hnvptf', 'template_ugspg5y', {
+                await emailjs.send('service_4hnvptf', 'template_ugspg5y', {
                     to_email: 'amarosem3@gmail.com',
-                    subject: 'Test Email from ROLLCALL',
+                    subject: 'Test Email',
                     name: 'Admin',
-                    message: 'System test email',
+                    message: 'Test from ROLLCALL',
                     date: new Date().toLocaleDateString()
                 });
-                if (res.status === 200) {
-                    div.innerHTML = '✅ Test email sent!';
-                    div.className = 'test-result present';
-                } else {
-                    div.innerHTML = '❌ Failed to send email.';
-                    div.className = 'test-result invalid';
-                }
+                div.innerHTML = '✅ Email sent!';
+                div.className = 'test-result present';
             } catch(e) {
                 div.innerHTML = '❌ Error: ' + e.message;
                 div.className = 'test-result invalid';
             }
         };
 
-        // STATISTICS FIXED: Present = present+late, Late count shown separately
         async function loadStats() {
             const studentsSnap = await db.collection('students').get();
             const total = studentsSnap.size;
             const today = new Date().toISOString().split('T')[0];
             const attendanceSnap = await db.collection('attendance').where('scan_date', '==', today).get();
-            let presentCount = 0, lateCount = 0;
-            attendanceSnap.forEach(doc => {
-                const status = doc.data().status;
-                if (status === 'present') presentCount++;
-                else if (status === 'late') lateCount++;
-            });
-            const hadir = presentCount + lateCount;
-            const absent = total - hadir;
-            const rate = total ? Math.round((hadir / total) * 100) : 0;
+            const present = attendanceSnap.size;
+            const absent = total - present;
+            const rate = total ? Math.round((present / total) * 100) : 0;
             document.getElementById('totalStudents').innerText = total;
-            document.getElementById('presentCount').innerText = hadir;      // Total hadir (present+late)
-            document.getElementById('lateCount').innerText = lateCount;     // Just late
+            document.getElementById('presentCount').innerText = present;
+            document.getElementById('absentCount').innerText = absent;
             document.getElementById('attendanceRate').innerText = rate + '%';
         }
 
@@ -354,57 +198,101 @@
             let html = '';
             for (const cls of sortedClasses) {
                 const studentsInClass = grouped[cls];
-                html += `<div class="class-group"><div class="class-header"><i class="fas fa-chalkboard-user"></i> ${cls} (${studentsInClass.length})</div>
-                        <table class="student-table"><thead><tr><th>IC Number</th><th>Student ID</th><th>Name</th><th>Action</th></tr></thead><tbody>`;
+                html += `<div class="class-group"><div class="class-header"><i class="fas fa-chalkboard-user"></i> ${cls} (${studentsInClass.length} students)</div>
+                <table class="student-table"><thead><tr><th>IC Number</th><th>Student ID</th><th>Name</th><th>Semester</th><th>Action</th></tr></thead><tbody>`;
                 studentsInClass.forEach(s => {
-                    html += `<tr>
-                        <td>${escapeHtml(s.ic_number || '')}</td>
-                        <td>${escapeHtml(s.student_id || '')}</td>
-                        <td>${escapeHtml(s.student_name || '')}</td>
-                        <td><button class="delete-btn" data-id="${s.id}"><i class="fas fa-trash"></i> Delete</button></td>
-                    </tr>`;
+                    html += `<tr><td>${escapeHtml(s.ic_number || '')}</td><td>${escapeHtml(s.student_id || '')}</td>
+                    <td>${escapeHtml(s.student_name || '')}</td><td>${s.semester || '-'}</td>
+                    <td><button class="delete-btn" data-id="${s.id}"><i class="fas fa-trash"></i> Delete</button></td></tr>`;
                 });
                 html += `</tbody></table></div>`;
             }
             container.innerHTML = html;
             document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    const id = btn.getAttribute('data-id');
-                    if (confirm('Delete this student permanently?')) {
-                        await db.collection('students').doc(id).delete();
+                btn.onclick = async () => {
+                    if (confirm('Delete this student?')) {
+                        await db.collection('students').doc(btn.dataset.id).delete();
                         loadStudentsGrouped();
                         loadStats();
                     }
-                });
+                };
             });
         }
+
         function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
 
-        document.getElementById('studentForm').addEventListener('submit', async (e) => {
+        document.getElementById('studentForm').onsubmit = async (e) => {
             e.preventDefault();
             const ic = document.getElementById('ic_number').value.trim();
             const sid = document.getElementById('student_id').value.trim();
             const name = document.getElementById('student_name').value.trim();
             const className = document.getElementById('class_name').value.trim();
-            if (!ic || !sid || !name) { alert('Please fill IC, Student ID and Name'); return; }
-            try {
-                await db.collection('students').add({
-                    ic_number: ic,
-                    student_id: sid,
-                    student_name: name,
-                    class: className || '',
-                    created_at: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                alert('Student added');
-                document.getElementById('studentForm').reset();
+            const semester = parseInt(document.getElementById('semester').value) || 1;
+            if (!ic || !sid || !name) { alert('Please fill required fields'); return; }
+            await db.collection('students').add({
+                ic_number: ic, student_id: sid, student_name: name,
+                class: className || '', semester: semester,
+                created_at: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            alert('Student added');
+            document.getElementById('studentForm').reset();
+            loadStudentsGrouped();
+            loadStats();
+        };
+
+        // Import Excel
+        document.getElementById('importExcelBtn').onclick = async () => {
+            const fileInput = document.getElementById('excelFile');
+            if (!fileInput.files.length) { alert('Please select an Excel file'); return; }
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(sheet);
+                if (!rows.length) { alert('No data found'); return; }
+                if (!confirm(`Import ${rows.length} students? This will REPLACE all existing students.`)) return;
+                // Delete all existing students
+                const existing = await db.collection('students').get();
+                const batch = db.batch();
+                existing.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+                // Add new students
+                let count = 0;
+                for (const row of rows) {
+                    await db.collection('students').add({
+                        student_name: row.student_name || row.name || '',
+                        student_id: row.student_id || row.id || '',
+                        ic_number: row.ic_number || row.ic || '',
+                        class: row.class || '',
+                        semester: parseInt(row.semester) || 1,
+                        created_at: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    count++;
+                }
+                alert(`✅ Imported ${count} students`);
                 loadStudentsGrouped();
                 loadStats();
-            } catch (err) { alert('Error: ' + err.message); }
-        });
+            };
+            reader.readAsArrayBuffer(file);
+        };
+
+        document.getElementById('downloadTemplateBtn').onclick = () => {
+            const template = [
+                ['student_name', 'student_id', 'ic_number', 'class', 'semester'],
+                ['Ahmad Bin Abdullah', 'S001', '010101010101', 'DFK5A', 1],
+                ['Siti Binti Ahmad', 'S002', '020202020202', 'DFK5A', 1]
+            ];
+            const ws = XLSX.utils.aoa_to_sheet(template);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Students');
+            XLSX.writeFile(wb, 'student_template.xlsx');
+        };
 
         loadStats();
         loadStudentsGrouped();
-        setInterval(() => { loadStats(); loadStudentsGrouped(); }, 15000);
+        setInterval(() => { loadStats(); loadStudentsGrouped(); }, 30000);
     </script>
 </body>
 </html>
