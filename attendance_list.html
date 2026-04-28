@@ -192,7 +192,12 @@
             if (!records.length) { tbody.innerHTML = '<tr><td colspan="7" class="no-data">No records</td></tr>'; return; }
             const grouped = {};
             records.forEach(rec => {
-                const dateKey = rec.scanned_at ? rec.scanned_at.toISOString().split('T')[0] : 'Unknown';
+                // Convert to Malaysia time (UTC+8) for date grouping
+let dateKey = 'Unknown';
+if (rec.scanned_at) {
+    const malaysiaDate = new Date(rec.scanned_at.getTime() + (8 * 60 * 60 * 1000));
+    dateKey = malaysiaDate.toISOString().split('T')[0];
+}
                 if (!grouped[dateKey]) grouped[dateKey] = [];
                 grouped[dateKey].push(rec);
             });
